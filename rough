@@ -1,0 +1,30 @@
+finalFeatures=['FURNISHED','BALCONY','RENOVATED','NOFEE','ON-SITELAUNDRY','HIGHCEILINGS','LAUNDRYINUNIT','HARDWOODFLOORS','MULTI-LEVEL',\
+               'PETSONAPPROVAL','GRANITEKITCHEN','TERRACE','STAINLESSSTEELAPPLIANCES','LOFT','DININGROOM','WHEELCHAIRACCESS','LIGHT','REDUCEDFEE',\
+               'HIGHSPEEDINTERNET','PRIVATEOUTDOORSPACE','DISHWASHER','WALKINCLOSET(S)','EXCLUSIVE','GARDEN/PATIO','COMMONOUTDOORSPACE',\
+               'NEWCONSTRUCTION','ROOFDECK','MARBLEBATH','OUTDOORSPACE']
+merger={'dishwasher':'Dishwasher','Laundry In Unit':'Laundry in Unit','Laundry In Building':'On-site Laundry',\
+        'Laundry in Building':'On-site Laundry','HARDWOOD':'Hardwood Floors','Laundry Room':'On-site Laundry',\
+        'High Ceiling':'HIGH CEILINGS','LAUNDRY':'On-site Laundry','High Ceilings':'HIGH CEILINGS',\
+        'Hardwood':'Hardwood Floors','Newly renovated':'Renovated','On-site laundry':'On-site Laundry'}
+
+    finalFeatures = ['Doorman', 'Furnished', 'Balcony', 'Renovated', 'No Fee', 'Elevator', 'Fitness Center', 'prewar',
+                     'On-site Laundry', \
+                     'HIGH CEILINGS', 'On-site Garage', 'LOWRISE', 'Cats Allowed', 'Roof-deck', 'Pool',
+                     'Laundry in Unit', 'Pre-War', \
+                     'Hardwood Floors', 'Swimming Pool', 'Fireplace', 'Multi-Level', 'Pets on approval',
+                     'Granite Kitchen', 'Terrace', \
+                     'LIVE IN SUPER', 'Stainless Steel Appliances', 'Loft', 'Garage', 'Dining Room',
+                     'Wheelchair Access', 'SIMPLEX', \
+                     'Dogs Allowed', 'Light', 'Washer/Dryer', 'Prewar', 'Reduced Fee', 'PublicOutdoor',
+                     'Washer in Unit', 'Dryer in Unit', \
+                     'High Speed Internet', 'Private Outdoor Space', 'Dishwasher', 'Green Building',
+                     'Walk in Closet(s)', 'Exclusive', \
+                     'Garden/Patio', 'Common Outdoor Space', 'Storage', 'New Construction', 'Roof Deck', 'Marble Bath',
+                     'Live In Super', 'Outdoor Space']
+    merger = {'Concierge': 'Doorman', 'dishwasher': 'Dishwasher', 'Laundry In Unit': 'Laundry in Unit',
+              'elevator': 'Elevator', 'Laundry In Building': 'On-site Laundry', \
+              'Laundry in Building': 'On-site Laundry', 'HARDWOOD': 'Hardwood Floors', 'Parking Space': 'Garage',
+              'Laundry Room': 'Laundry in Building', \
+              'High Ceiling': 'HIGH CEILINGS', 'Gym/Fitness': 'Fitness Center', 'LAUNDRY': 'Laundry in Building',
+              'High Ceilings': 'HIGH CEILINGS', \
+              'Hardwood': 'Hardwood Floors', 'Newly renovated': 'Renovated', 'On-site laundry': 'On-site Laundry'}
