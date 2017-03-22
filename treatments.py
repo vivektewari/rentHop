@@ -1,20 +1,12 @@
-
+import pandas as pd
 def conversion(raw):
-    extraFeatures = ['bathrooms', 'bedrooms', 'picCount', 'price']
+    extraFeatures = ['bathrooms', 'bedrooms', 'picCount', 'price','newness']
+    finalFeatures = ['NOFEE', 'HARDWOODFLOORS', 'DISHWASHER', 'ON-SITELAUNDRY', 'OUTDOORSPACE']
+    merger = {'dishwasher': 'Dishwasher', 'Laundry In Building': 'On-site Laundry', \
+                               'Laundry in Building': 'On-site Laundry', 'HARDWOOD': 'Hardwood Floors',\
+                               'Hardwood': 'Hardwood Floors', \
+                               'On-site laundry': 'On-site Laundry'}
 
-    finalFeatures = ['FURNISHED', 'BALCONY', 'RENOVATED', 'NOFEE', 'ON-SITELAUNDRY', 'HIGHCEILINGS', 'LAUNDRYINUNIT',
-                     'HARDWOODFLOORS', 'MULTI-LEVEL', \
-                     'PETSONAPPROVAL', 'GRANITEKITCHEN', 'TERRACE', 'STAINLESSSTEELAPPLIANCES', 'LOFT', 'DININGROOM',
-                     'WHEELCHAIRACCESS', 'LIGHT', 'REDUCEDFEE', \
-                     'HIGHSPEEDINTERNET', 'PRIVATEOUTDOORSPACE', 'DISHWASHER', 'WALKINCLOSET(S)', 'EXCLUSIVE',
-                     'GARDEN/PATIO', 'COMMONOUTDOORSPACE', \
-                     'NEWCONSTRUCTION', 'ROOFDECK', 'MARBLEBATH', 'OUTDOORSPACE']
-    merger = {'dishwasher': 'Dishwasher', 'Laundry In Unit': 'Laundry in Unit',
-              'Laundry In Building': 'On-site Laundry', \
-              'Laundry in Building': 'On-site Laundry', 'HARDWOOD': 'Hardwood Floors',
-              'Laundry Room': 'On-site Laundry', \
-              'High Ceiling': 'HIGH CEILINGS', 'LAUNDRY': 'On-site Laundry', 'High Ceilings': 'HIGH CEILINGS', \
-              'Hardwood': 'Hardwood Floors', 'Newly renovated': 'Renovated', 'On-site laundry': 'On-site Laundry'}
     cleanFeatures = []
     cleanMerger = {}
     for element in finalFeatures:
@@ -32,5 +24,6 @@ def conversion(raw):
                 raw.set_value(index, cleanElement, 1)
             elif cleanElement in cleanMerger.keys():
                 raw.set_value(index, cleanMerger[cleanElement], 1)
-    return raw,extraFeatures+cleanFeatures
+    raw['newness']= (pd.to_datetime('2005/11/23')-pd.to_datetime(raw['created'])).dt.days
+    return raw,extraFeatures +cleanFeatures
 

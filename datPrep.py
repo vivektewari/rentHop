@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import equation
 from treatments import conversion
-raw=pd.read_json('input\\train.json')[0:1000]
+raw=pd.read_json('input\\train.json')
 test=pd.read_json('input\\test.json')
 raw['target']=raw['interest_level'].map({'high':1,'medium':2,'low':3})
 c=set()
@@ -17,6 +17,6 @@ count=1
 # raw.to_excel(writer, 'sheet1')
 # writer.close()
 raw,var=conversion(raw)
-#ovr=equation.fit(raw,sheetName='sheet1',variables=var)
-#equation.predict(ovr,test)
+ovr=equation.fit(raw,sheetName='sheet1',variables=var)
+equation.predict(ovr,test)
 

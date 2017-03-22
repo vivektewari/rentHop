@@ -8,7 +8,8 @@ def IV(dataset,variable,target,bins=1): #column:identifier,variable of interest,
     g=df0.groupby([variable])['high','medium','low'].sum()/df0.sum()
 
     score=(g.diff(periods=1,axis=1)**2)[-2:].sum(axis=1)
-    return score[0]
+    if g['medium'][0]*g['low'][0]<0 :return 0
+    else :return score[0]
 
 
 
@@ -23,4 +24,5 @@ for element in features:
 df=pd.DataFrame(dict.items(),columns=['variable','iv'])
 writer = pd.ExcelWriter('output\\IV.xlsx', engine='xlsxwriter')
 df.to_excel(writer, 'sheet1')
+writer.close()
 

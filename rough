@@ -1,4 +1,4 @@
-finalFeatures=['FURNISHED','BALCONY','RENOVATED','NOFEE','ON-SITELAUNDRY','HIGHCEILINGS','LAUNDRYINUNIT','HARDWOODFLOORS','MULTI-LEVEL',\
+2.finalFeatures=['FURNISHED','BALCONY','RENOVATED','NOFEE','ON-SITELAUNDRY','HIGHCEILINGS','LAUNDRYINUNIT','HARDWOODFLOORS','MULTI-LEVEL',\
                'PETSONAPPROVAL','GRANITEKITCHEN','TERRACE','STAINLESSSTEELAPPLIANCES','LOFT','DININGROOM','WHEELCHAIRACCESS','LIGHT','REDUCEDFEE',\
                'HIGHSPEEDINTERNET','PRIVATEOUTDOORSPACE','DISHWASHER','WALKINCLOSET(S)','EXCLUSIVE','GARDEN/PATIO','COMMONOUTDOORSPACE',\
                'NEWCONSTRUCTION','ROOFDECK','MARBLEBATH','OUTDOORSPACE']
@@ -7,7 +7,7 @@ merger={'dishwasher':'Dishwasher','Laundry In Unit':'Laundry in Unit','Laundry I
         'High Ceiling':'HIGH CEILINGS','LAUNDRY':'On-site Laundry','High Ceilings':'HIGH CEILINGS',\
         'Hardwood':'Hardwood Floors','Newly renovated':'Renovated','On-site laundry':'On-site Laundry'}
 
-    finalFeatures = ['Doorman', 'Furnished', 'Balcony', 'Renovated', 'No Fee', 'Elevator', 'Fitness Center', 'prewar',
+  1.  finalFeatures = ['Doorman', 'Furnished', 'Balcony', 'Renovated', 'No Fee', 'Elevator', 'Fitness Center', 'prewar',
                      'On-site Laundry', \
                      'HIGH CEILINGS', 'On-site Garage', 'LOWRISE', 'Cats Allowed', 'Roof-deck', 'Pool',
                      'Laundry in Unit', 'Pre-War', \
@@ -28,3 +28,18 @@ merger={'dishwasher':'Dishwasher','Laundry In Unit':'Laundry in Unit','Laundry I
               'High Ceiling': 'HIGH CEILINGS', 'Gym/Fitness': 'Fitness Center', 'LAUNDRY': 'Laundry in Building',
               'High Ceilings': 'HIGH CEILINGS', \
               'Hardwood': 'Hardwood Floors', 'Newly renovated': 'Renovated', 'On-site laundry': 'On-site Laundry'}
+  3.finalFeatures=['NOFEE','HARDWOODFLOORS','DISHWASHER','ON-SITELAUNDRY','OUTDOORSPACE]
+    merger = {'dishwasher': 'Dishwasher', 'Laundry In Building': 'On-site Laundry', \
+              'Laundry in Building': 'On-site Laundry', 'HARDWOOD': 'Hardwood Floors','Hardwood': 'Hardwood Floors',\
+               'On-site laundry': 'On-site Laundry'}
+
+  NOFEE	0.044549867
+HARDWOODFLOORS	0.032395723
+DISHWASHER	0.012127143
+ON-SITELAUNDRY	0.010445675
+OUTDOORSPACE	0.002955249
+REDUCEDFEE	0.001831555
+LAUNDRYINUNIT	0.00168849
+DININGROOM	0.001536043
+ROOFDECK	0.001517847
+HIGHSPEEDINTERNET	0.001492143
