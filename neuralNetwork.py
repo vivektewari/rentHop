@@ -21,8 +21,9 @@ class neuralNetworks(object):
     def feedForward(self):
         input=self.input
         for i in range(0, self.numLayers):
-            input=self.func(self.layers[i].output(input))
             self.layerOutput.append(self.layers[i].output(input))
+            input=self.func(self.layers[i].output(input))
+
         self.modelOutput=input
     def backwardPropagation(self):
         self.cost=self.actualOutput*(np.log(self.modelOutput)/np.dot(self.modelOutput,np.ones(shape=(3,1))))
