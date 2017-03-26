@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from treatments import conversion
 def sigmoid(x):return 1/(1+np.exp(x)**-1)
 def sigDeriv(x):return sigmoid(x)*(1-sigmoid(x))
 class layer(object):
@@ -26,21 +27,30 @@ class neuralNetworks(object):
             input=self.func(self.layers[i].output(input))
 
         self.modelOutput=input
-    def backwardPropagation(self):
-        y=(self.modelOutput.shape[0])
-        x=self.actualOutput*(np.log((self.modelOutput)/np.dot(self.modelOutput,np.ones(shape=(3,1)))))
+    def backwardPropagation(self,learningRate):
         self.cost=(-1.0/(self.modelOutput.shape[0]))*np.sum(self.actualOutput*(np.log((self.modelOutput)/np.dot(self.modelOutput,np.ones(shape=(3,1))))))
-        cofChange=0.3*(-1.0/(self.modelOutput.shape[0]))*np.dot(np.transpose(self.input),(self.actualOutput/self.modelOutput)*self.funcGradient(self.layerOutput[-1]))
+        cofChange=learningRate*(-1.0/(self.modelOutput.shape[0]))*(np.dot(np.transpose(self.input),((self.actualOutput/self.modelOutput)*self.funcGradient(self.layerOutput[-1]))-(self.actualOutput/np.sum(self.modelOutput))*np.dot(self.funcGradient(self.layerOutput[-1]),np.ones(shape=(3,1)))))
         self.layers[0].cofficient-=cofChange
     def findEstimates(self):
-        for i in range(1,200):
+        best=100
+        for i in range(1,500):
             self.feedForward()
-            self.backwardPropagation()
+            learningRate=50/i
+            self.backwardPropagation(learningRate)
+            if self.cost<best:
+                best=self.cost
+                bestCof=self.layers[0].cofficient
             print self.cost
-    def predict(self,test,output):
+        self.layers[0].cofficient=bestCof
+        print best
+    def predict(self,test,output='output\\test.csv'):
         summit = test[['listing_id']]
+        df1, variables = conversion(test)
+        X = df1[:].loc[:, variables]
         summit['key'] = range(1, len(summit) + 1)
-        t = pd.DataFrame(self.modelOutput, columns=['high','medium','low'], index=summit.index)
+        t=np.sum(self.func(self.layers[0].output(X.as_matrix())),axis=1)
+        predicted=self.func(self.layers[0].output(X.as_matrix()))/np.dot(self.func(self.layers[0].output(X.as_matrix())),np.ones(shape=(3,1)))
+        t = pd.DataFrame(predicted, columns=['high','medium','low'], index=summit.index)
         t['key'] = range(1, len(t) + 1)
         final = summit.merge(t, on='key', how='left')
         final = final[['listing_id', 'high', 'medium', 'low']]

@@ -4,8 +4,8 @@ from neuralNetwork import  neuralNetworks as nn,sigmoid,sigDeriv
 import numpy as np
 import equation
 from treatments import conversion
-raw=pd.read_json('input\\train.json')[0:100]
-#test=pd.read_json('input\\test.json')
+raw=pd.read_json('input\\train.json')
+test=pd.read_json('input\\test.json')
 raw['target']=raw['interest_level'].map({'high':1,'medium':2,'low':3})
 c=set()
 count=1
@@ -22,10 +22,10 @@ raw['high']=raw.interest_level.map(lambda row:int(row=='high'))
 raw['medium']=raw.interest_level.map(lambda row:int(row=='medium'))
 raw['low']=raw.interest_level.map(lambda row:int(row=='low'))
 output=raw[['high','medium','low']].as_matrix()
-listOfMatrix=[np.random.rand(10,3)]
-input=raw[var].as_matrix()
-d=nn(listOfMatrix=[np.random.rand(10,3)],input=raw[var].as_matrix(),output=raw[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv)
+
+d=nn(listOfMatrix=[0.001*np.random.rand(5,3)],input=raw[var].as_matrix(),output=raw[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv)
 d.findEstimates()
+d.predict(test=test)
 #ovr=equation.fit(raw,sheetName='sheet1',variables=var)
 #equation.predict(ovr,test)
 
