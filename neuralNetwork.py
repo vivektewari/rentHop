@@ -1,7 +1,10 @@
 import numpy as np
 import pandas as pd
 from treatments import conversion
-def sigmoid(x):return 1/(1+np.exp(x)**-1)
+def sigmoid(x):
+
+    return np.exp(x)/(1+np.exp(x))
+
 def sigDeriv(x):return sigmoid(x)*(1-sigmoid(x))
 class layer(object):
     def __init__(self,cofficient):
@@ -29,13 +32,13 @@ class neuralNetworks(object):
         self.modelOutput=input
     def backwardPropagation(self,learningRate):
         self.cost=(-1.0/(self.modelOutput.shape[0]))*np.sum(self.actualOutput*(np.log((self.modelOutput)/np.dot(self.modelOutput,np.ones(shape=(3,1))))))
-        cofChange=learningRate*(-1.0/(self.modelOutput.shape[0]))*(np.dot(np.transpose(self.input),((self.actualOutput/self.modelOutput)*self.funcGradient(self.layerOutput[-1]))-(self.actualOutput/np.sum(self.modelOutput))*np.dot(self.funcGradient(self.layerOutput[-1]),np.ones(shape=(3,1)))))
+        cofChange=learningRate*(-1.0/(self.modelOutput.shape[0]))*(np.dot(np.transpose(self.input),((self.actualOutput/self.modelOutput)*self.funcGradient(self.layerOutput[-1]))-((self.actualOutput/np.sum(self.modelOutput))*np.dot(self.funcGradient(self.layerOutput[-1]),np.ones(shape=(3,1))))))
         self.layers[0].cofficient-=cofChange
     def findEstimates(self):
         best=100
-        for i in range(1,500):
+        for i in range(1,2000):
             self.feedForward()
-            learningRate=50/i
+            learningRate=10.0/i
             self.backwardPropagation(learningRate)
             if self.cost<best:
                 best=self.cost

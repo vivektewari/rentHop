@@ -37,6 +37,5 @@ def conversion(raw):
     pc=['pc1','pc2','pc3','pc4','pc5']
     t=pd.DataFrame(r,columns=pc,index=raw.index)
     raw=raw.join(t)
-
-    return raw,extraFeatures
+    return raw,extraFeatures +finalFeatures
 
