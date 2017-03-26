@@ -4,7 +4,7 @@ from neuralNetwork import  neuralNetworks as nn,sigmoid,sigDeriv
 import numpy as np
 import equation
 from treatments import conversion
-raw=pd.read_json('input\\train.json')[0:1000]
+raw=pd.read_json('input\\train.json')[0:100]
 #test=pd.read_json('input\\test.json')
 raw['target']=raw['interest_level'].map({'high':1,'medium':2,'low':3})
 c=set()
@@ -21,7 +21,11 @@ raw,var=conversion(raw)
 raw['high']=raw.interest_level.map(lambda row:int(row=='high'))
 raw['medium']=raw.interest_level.map(lambda row:int(row=='medium'))
 raw['low']=raw.interest_level.map(lambda row:int(row=='low'))
-nn.neuralNetworks(listOfMatrix=[np.random.rand(10,3)],input=raw[[var]].as_matrix(),output=raw[['high','nedium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv)
+output=raw[['high','medium','low']].as_matrix()
+listOfMatrix=[np.random.rand(10,3)]
+input=raw[var].as_matrix()
+d=nn(listOfMatrix=[np.random.rand(10,3)],input=raw[var].as_matrix(),output=raw[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv)
+d.findEstimates()
 #ovr=equation.fit(raw,sheetName='sheet1',variables=var)
 #equation.predict(ovr,test)
 

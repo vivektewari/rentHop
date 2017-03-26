@@ -28,7 +28,7 @@ merger={'dishwasher':'Dishwasher','Laundry In Unit':'Laundry in Unit','Laundry I
               'High Ceiling': 'HIGH CEILINGS', 'Gym/Fitness': 'Fitness Center', 'LAUNDRY': 'Laundry in Building',
               'High Ceilings': 'HIGH CEILINGS', \
               'Hardwood': 'Hardwood Floors', 'Newly renovated': 'Renovated', 'On-site laundry': 'On-site Laundry'}
-  3.finalFeatures=['NOFEE','HARDWOODFLOORS','DISHWASHER','ON-SITELAUNDRY','OUTDOORSPACE]
+  3.finalFeatures=['NOFEE','HARDWOODFLOORS','DISHWASHER','ON-SITELAUNDRY','OUTDOORSPACE']
     merger = {'dishwasher': 'Dishwasher', 'Laundry In Building': 'On-site Laundry', \
               'Laundry in Building': 'On-site Laundry', 'HARDWOOD': 'Hardwood Floors','Hardwood': 'Hardwood Floors',\
                'On-site laundry': 'On-site Laundry'}

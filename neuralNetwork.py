@@ -5,7 +5,7 @@ class layer(object):
     def __init__(self,cofficient):
         self.cofficient = cofficient
     def output(self,input):
-        return np.dot(self.cofficient,input)
+        return np.dot(input,self.cofficient)
     def gradientCorrection(self):pass
 class neuralNetworks(object):
     def __init__(self,listOfMatrix,input,output,func,funcGradient):
@@ -26,9 +26,9 @@ class neuralNetworks(object):
 
         self.modelOutput=input
     def backwardPropagation(self):
-        self.cost=self.actualOutput*(np.log(self.modelOutput)/np.dot(self.modelOutput,np.ones(shape=(3,1))))
-        cofChange=np.dot(np.transpose(self.input)),(self.actualOutput/self.modelOutput)*self.funcGradient(self.layerOutput[-1])
-        self.listOfMatrix[0]=self.listOfMatrix[0]-cofChange
+        self.cost=np.sum(self.actualOutput*(np.log(self.modelOutput)/np.dot(self.modelOutput,np.ones(shape=(3,1)))))
+        cofChange=0.3*np.dot(np.transpose(self.input),(self.actualOutput/self.modelOutput)*self.funcGradient(self.layerOutput[-1]))
+        self.layers[0].cofficient-=cofChange
     def findEstimates(self):
         for i in range(1,20):
             self.feedForward()
@@ -55,6 +55,3 @@ class neuralNetworks(object):
 
 
 
-def neural(data,layers,learninRate):
-
-def feedForward():
