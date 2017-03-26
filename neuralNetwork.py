@@ -26,16 +26,17 @@ class neuralNetworks(object):
             input=self.func(self.layers[i].output(input))
 
         self.modelOutput=input
-    def backwardPropagation(self):
+    def backwardPropagation(self,learningRate):
         y=(self.modelOutput.shape[0])
         x=self.actualOutput*(np.log((self.modelOutput)/np.dot(self.modelOutput,np.ones(shape=(3,1)))))
         self.cost=(-1.0/(self.modelOutput.shape[0]))*np.sum(self.actualOutput*(np.log((self.modelOutput)/np.dot(self.modelOutput,np.ones(shape=(3,1))))))
-        cofChange=0.3*(-1.0/(self.modelOutput.shape[0]))*np.dot(np.transpose(self.input),(self.actualOutput/self.modelOutput)*self.funcGradient(self.layerOutput[-1]))
+        cofChange=learningRate*(-1.0/(self.modelOutput.shape[0]))*np.dot(np.transpose(self.input),(self.actualOutput/self.modelOutput)*self.funcGradient(self.layerOutput[-1]))
         self.layers[0].cofficient-=cofChange
     def findEstimates(self):
-        for i in range(1,200):
+        for i in range(1,2000):
             self.feedForward()
-            self.backwardPropagation()
+            learningRate=50/i
+            self.backwardPropagation(learningRate)
             print self.cost
     def predict(self,test,output):
         summit = test[['listing_id']]
