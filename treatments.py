@@ -38,5 +38,5 @@ def conversion(raw):
     raw['intercept']=1
     t=pd.DataFrame(r,columns=pc,index=raw.index)
     raw=raw.join(t)
-    return raw,finalFeatures+['intercept']
+    return raw,finalFeatures+['intercept']+extraFeatures
 

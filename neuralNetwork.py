@@ -48,7 +48,9 @@ class neuralNetworks(object):#please add a base term in your data while passing 
         best=100
         for i in range(1,self.iteration):
             self.feedForward()
-            learningRate=0.1
+            if i<2000:learningRate=0.5
+            elif i<4000:learningRate=0.2
+            else :learningRate=0.1
             self.backwardPropagation(learningRate)
             if self.cost<best:
                 best=self.cost
