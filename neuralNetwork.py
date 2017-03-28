@@ -10,10 +10,11 @@ class layer(object):
     def __init__(self,cofficient):
         self.cofficient = cofficient
     def output(self,input):
-        return np.dot(input,self.cofficient)
+        self.values=np.dot(input,self.cofficient)
+        return self.values
     def gradientCorrection(self):pass
-class neuralNetworks(object):
-    def __init__(self,listOfMatrix,input,output,func,funcGradient):
+class neuralNetworks(object):#please add a base term in your data while passing the data
+    def __init__(self,listOfMatrix,input,output,func,funcGradient,iteration=100):
         self.numLayers=len(listOfMatrix)
         self.layers=[]
         self.input=input
@@ -21,24 +22,33 @@ class neuralNetworks(object):
         self.funcGradient=funcGradient
         self.actualOutput=output
         self.layerOutput=[]
+        self.iteration=iteration
         for i in range(0,self.numLayers):
             self.layers.append(layer(listOfMatrix[i]))
-    def feedForward(self):
-        input=self.input
+    def feedForward(self,inputDataset=None):
+        if inputDataset==None:input=self.input
+        else :input=inputDataset
+        self.layerOutput=[]
         for i in range(0, self.numLayers):
-            self.layerOutput.append(self.layers[i].output(input))
             input=self.func(self.layers[i].output(input))
+            self.layerOutput.append(input)
 
         self.modelOutput=input
     def backwardPropagation(self,learningRate):
-        self.cost=(-1.0/(self.modelOutput.shape[0]))*np.sum(self.actualOutput*(np.log((self.modelOutput)/np.dot(self.modelOutput,np.ones(shape=(3,1))))))
-        cofChange=learningRate*(-1.0/(self.modelOutput.shape[0]))*(np.dot(np.transpose(self.input),((self.actualOutput/self.modelOutput)*self.funcGradient(self.layerOutput[-1]))-((self.actualOutput/np.sum(self.modelOutput))*np.dot(self.funcGradient(self.layerOutput[-1]),np.ones(shape=(3,1))))))
-        self.layers[0].cofficient-=cofChange
+        self.change=[]
+        self.cost=(-1.0/(self.modelOutput.shape[0]))*np.sum(self.actualOutput*(np.log((self.modelOutput)/np.sum(self.modelOutput,axis=1,keepdims=True))))
+        self.change.append(learningRate*(-1.0/(self.modelOutput.shape[0]))*(np.dot(np.transpose(self.input),np.dot(((self.actualOutput/self.modelOutput)*self.funcGradient(self.layerOutput[1]))-\
+                    ((1/np.sum(self.modelOutput,axis=1,keepdims=True))*self.funcGradient(self.layerOutput[1])),np.transpose(self.layers[1].cofficient))*self.funcGradient(self.layerOutput[0]))))
+        self.change.append(learningRate * (-1.0 / (self.modelOutput.shape[0])) * (np.dot(np.transpose(self.layerOutput[0]),((self.actualOutput / self.modelOutput) * self.funcGradient(self.layerOutput[1])) - (
+               (1 / np.sum(self.modelOutput, axis=1,keepdims=True)) * self.funcGradient(self.layerOutput[1])))))
+
+        for i in range(0,len(self.change)):
+            self.layers[i].cofficient-=self.change[i]
     def findEstimates(self):
         best=100
-        for i in range(1,2000):
+        for i in range(1,self.iteration):
             self.feedForward()
-            learningRate=10.0/i
+            learningRate=0.1
             self.backwardPropagation(learningRate)
             if self.cost<best:
                 best=self.cost
@@ -51,9 +61,9 @@ class neuralNetworks(object):
         df1, variables = conversion(test)
         X = df1[:].loc[:, variables]
         summit['key'] = range(1, len(summit) + 1)
-        t=np.sum(self.func(self.layers[0].output(X.as_matrix())),axis=1)
-        predicted=self.func(self.layers[0].output(X.as_matrix()))/np.dot(self.func(self.layers[0].output(X.as_matrix())),np.ones(shape=(3,1)))
-        t = pd.DataFrame(predicted, columns=['high','medium','low'], index=summit.index)
+        self.feedForward(X.as_matrix())
+        predictedNormalize=self.modelOutput/np.sum(self.modelOutput,axis=1,keepdims=True)
+        t = pd.DataFrame(predictedNormalize, columns=['high','medium','low'], index=summit.index)
         t['key'] = range(1, len(t) + 1)
         final = summit.merge(t, on='key', how='left')
         final = final[['listing_id', 'high', 'medium', 'low']]

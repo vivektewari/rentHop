@@ -23,7 +23,7 @@ raw['medium']=raw.interest_level.map(lambda row:int(row=='medium'))
 raw['low']=raw.interest_level.map(lambda row:int(row=='low'))
 output=raw[['high','medium','low']].as_matrix()
 
-d=nn(listOfMatrix=[np.random.rand(len(var),3)],input=raw[var].as_matrix(),output=raw[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv)
+d=nn(listOfMatrix=[np.random.rand(len(var),7),np.random.rand(7,3)],input=raw[var].as_matrix(),output=raw[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,iteration=10)
 d.findEstimates()
 d.predict(test=test)
 #ovr=equation.fit(raw,sheetName='sheet1',variables=var)

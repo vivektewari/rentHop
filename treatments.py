@@ -35,7 +35,8 @@ def conversion(raw):
 
     r=np.dot(feat,df)
     pc=['pc1','pc2','pc3','pc4','pc5']
+    raw['intercept']=1
     t=pd.DataFrame(r,columns=pc,index=raw.index)
     raw=raw.join(t)
-    return raw,extraFeatures +finalFeatures
+    return raw,finalFeatures+['intercept']
 
