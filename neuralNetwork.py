@@ -2,8 +2,11 @@ import numpy as np
 import pandas as pd
 from treatments import conversion
 def sigmoid(x):
+    z=x
+    z[z>15]=15
+    z[z<-15]=-15
+    return np.exp(z)/(1+np.exp(z))
 
-    return np.exp(x)/(1+np.exp(x))
 
 def sigDeriv(x):return sigmoid(x)*(1-sigmoid(x))
 class layer(object):

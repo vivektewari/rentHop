@@ -5,7 +5,7 @@ import numpy as np
 import equation
 from treatments import conversion
 raw=pd.read_json('input\\train.json')
-test=pd.read_json('input\\test.json')
+test=pd.read_json('input\\test.json')[0:1000]
 raw['target']=raw['interest_level'].map({'high':1,'medium':2,'low':3})
 c=set()
 count=1
@@ -22,8 +22,11 @@ raw['high']=raw.interest_level.map(lambda row:int(row=='high'))
 raw['medium']=raw.interest_level.map(lambda row:int(row=='medium'))
 raw['low']=raw.interest_level.map(lambda row:int(row=='low'))
 output=raw[['high','medium','low']].as_matrix()
-
-d=nn(listOfMatrix=[np.random.rand(len(var),7),np.random.rand(7,3)],input=raw[var].as_matrix(),output=raw[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,iteration=100)
+initial=np.random.rand(len(var),7)
+for i in range(0,len(var)):
+    weight=1/float(raw[[var[i]]].mean(axis=0))
+    initial[i]=weight*np.ones(shape=(1,7))
+d=nn(listOfMatrix=[initial,np.random.rand(7,3)],input=raw[var].as_matrix(),output=raw[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,iteration=1000)
 d.findEstimates()
 d.predict(test=test)
 #ovr=equation.fit(raw,sheetName='sheet1',variables=var)

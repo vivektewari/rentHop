@@ -38,5 +38,12 @@ def conversion(raw):
     raw['intercept']=1
     t=pd.DataFrame(r,columns=pc,index=raw.index)
     raw=raw.join(t)
-    return raw,finalFeatures+['intercept']+extraFeatures
+    raw['latL']=pd.qcut(raw['latitude'],4,labels=False)
+    raw['longL']= pd.qcut(raw['longitude'],4,labels=False)
+    raw=raw.join(raw.groupby(by=['latL','longL'])['target'].mean(), on=['latL','longL'], rsuffix='_r')
+
+
+    #34.0126,44.8835
+
+    return raw,finalFeatures+['intercept']+['bathrooms', 'bedrooms', 'picCount','target_r']
 
