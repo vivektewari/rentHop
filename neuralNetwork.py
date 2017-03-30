@@ -3,8 +3,8 @@ import pandas as pd
 from treatments import conversion
 def sigmoid(x):
     z=x
-    z[z>15]=15
-    z[z<-15]=-15
+    # z[z>15]=15
+    # z[z<-15]=-15
     return np.exp(z)/(1+np.exp(z))
 
 
@@ -51,7 +51,9 @@ class neuralNetworks(object):#please add a base term in your data while passing 
         best=100
         for i in range(1,self.iteration):
             self.feedForward()
-            if i<2000:learningRate=0.5
+
+            if i<300:learningRate=2.0
+            elif i<1000:learningRate=0.5
             elif i<4000:learningRate=0.2
             else :learningRate=0.1
             self.backwardPropagation(learningRate)
