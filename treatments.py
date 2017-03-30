@@ -33,15 +33,19 @@ def conversion(raw):
     pca.fit(feat)
     df=pd.DataFrame(np.transpose(pca.components_))
 
-    r=np.dot(feat,df)
-    pc=['pc1','pc2','pc3','pc4','pc5']
+    # r=np.dot(feat,df)
+    # pc=['pc1','pc2','pc3','pc4','pc5']
     #t=pd.DataFrame(r,columns=pc,index=raw.index)
     #raw=raw.join(t)
-    #raw['latL']=pd.qcut(raw['latitude'],4,labels=False)
-    #raw['longL']= pd.qcut(raw['longitude'],4,labels=False)
-    #raw=raw.join(raw.groupby(by=['latL','longL'])['target'].mean(), on=['latL','longL'], rsuffix='_r')
+    raw['latL']=pd.qcut(raw['latitude'],4,labels=False)
+    raw['longL']= pd.qcut(raw['longitude'],4,labels=False)
+    geoVar=[]
+    for i in range(0,4):
+        for j in range(0, 4):
+            raw['geo_'+str(i*10+j*1)]=raw.apply(lambda row: int(row['latL']==i and row['longL']==j),axis=1)
+            geoVar.append('geo_'+str(i*10+j*1))
 
-    var=finalFeatures+extraFeatures
+    var=finalFeatures+extraFeatures+geoVar
     raw_normalize = (raw[var] - raw[var].mean()) / (raw[var].std())
     raw_normalize['intercept'] = 1
 
