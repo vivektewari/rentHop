@@ -61,15 +61,16 @@ class neuralNetworks(object):#please add a base term in your data while passing 
             if self.cost<best:
                 best=self.cost
                 bestCof=self.layers[0].cofficient
-            print self.cost
         self.layers[0].cofficient=bestCof
         print best
-    def analyseObservation(self,dataSet):
+    def analyseObservation(self,dataSet,var):
         final=self.predict(dataSet)
 
-        final['cost']=pd.DataFrame(np.sum(dataSet[['high','medium','low']].as_matrix()*np.log(final[['high','medium','low']].as_matrix()),axis=1),index=final.index,columns=['cost'])['cost']
-        final=final.sort_values(by=['cost'])
-        final.to_csv('output\\cost.csv', sep=',')
+        dataSet['cost']=pd.DataFrame(np.sum(dataSet[['high','medium','low']].as_matrix()*np.log(final[['high','medium','low']].as_matrix()),axis=1),index=dataSet.index,columns=['cost'])['cost']
+        dataSet['intercept']=1
+        analysis=dataSet[var+['cost']+['high','medium','low']]
+        analysis=analysis.sort_values(by=['cost'])
+        return analysis
 
 
 

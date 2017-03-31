@@ -54,9 +54,10 @@ def conversion(raw):
 
     var=cleanFeatures +extraFeatures+geoVar
     raw_normalize = (raw[var] - raw[var].mean()) / (raw[var].std())
-    raw_normalize['intercept'] = 1
+    raw['intercept'] = 1
+    raw.update(raw_normalize)
 
     #34.0126,44.8835
 
-    return raw_normalize,var+['intercept']
+    return raw,var+['intercept']
 
