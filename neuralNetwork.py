@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from treatments import conversion
+from math import log
 def sigmoid(x):
     z=x
     # z[z>15]=15
@@ -63,7 +64,16 @@ class neuralNetworks(object):#please add a base term in your data while passing 
             print self.cost
         self.layers[0].cofficient=bestCof
         print best
-    def predict(self,test,output='output\\test.csv'):
+    def analyseObservation(self,dataSet):
+        final=self.predict(dataSet)
+
+        final['cost']=pd.DataFrame(np.sum(dataSet[['high','medium','low']].as_matrix()*np.log(final[['high','medium','low']].as_matrix()),axis=1),index=final.index,columns=['cost'])['cost']
+        final=final.sort_values(by=['cost'])
+        final.to_csv('output\\cost.csv', sep=',')
+
+
+
+    def predict(self,test):
         summit = test[['listing_id']]
         df1, variables = conversion(test)
         X = df1[:].loc[:, variables]
@@ -75,7 +85,7 @@ class neuralNetworks(object):#please add a base term in your data while passing 
         final = summit.merge(t, on='key', how='left')
         final = final[['listing_id', 'high', 'medium', 'low']]
         final = final.set_index('listing_id')
-        final.to_csv(output, sep=',')
+        return final
 
 
 
