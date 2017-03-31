@@ -40,6 +40,7 @@ for element in range(0,len(priceSeg)-1):
     temp.to_csv('output\\cost' + str(priceSeg[element]) + '.csv', sep=',')
 pred=prediction.sort_index()
 pred.to_csv('output\\test.csv', sep=',')
+
 #d.analyseObservation(dataSet=raw,var=var)
 # final=d.predict(test=test)
 # final.to_csv('output\\test.csv', sep=',')
