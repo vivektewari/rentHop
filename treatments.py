@@ -6,18 +6,16 @@ def getPCA(dataSet,variables,pcComponents):# adds pc components as pc0,pc1... fo
     feat=dataSet[variables]
     pca = PCA(n_components=pcComponents)
     pca.fit(feat)
-    df=pd.DataFrame(np.transpose(pca.components_))
-    r=np.dot(feat,df)
     pc=['pc'+str(i) for i in range(0,pcComponents)]
-    t=pd.DataFrame(r,columns=pc,index=dataSet.index)
+    t=pd.DataFrame(np.dot(feat.as_matrix(),np.transpose(pca.components_)),columns=pc,index=dataSet.index)
     dataSet=dataSet.join(t)
-def convFeatures(dataSet):
+    return pc,dataSet
 
+def convFeatures(dataSet):
     finalFeatures = ['NOFEE', 'HARDWOODFLOORS', 'DISHWASHER', 'ON-SITELAUNDRY', 'OUTDOORSPACE']
     merger = {'dishwasher': 'Dishwasher', 'Laundry In Building': 'On-site Laundry', \
-                               'Laundry in Building': 'On-site Laundry', 'HARDWOOD': 'Hardwood Floors',
-                               'Hardwood': 'Hardwood Floors', \
-                               'On-site laundry': 'On-site Laundry'}
+              'Laundry in Building': 'On-site Laundry', 'HARDWOOD': 'Hardwood Floors', 'Hardwood': 'Hardwood Floors', \
+              'On-site laundry': 'On-site Laundry'}
 
     cleanFeatures = []
     cleanMerger = {}
@@ -36,7 +34,7 @@ def convFeatures(dataSet):
                 dataSet.set_value(index, cleanElement, 1)
             elif cleanElement in cleanMerger.keys():
                 dataSet.set_value(index, cleanMerger[cleanElement], 1)
-    return cleanFeatures
+    return cleanFeatures,dataSet
 def getLocation(raw):
     raw['latL']=pd.qcut(raw['latitude'],4,labels=False)
     raw['longL']= pd.qcut(raw['longitude'],4,labels=False)
@@ -45,14 +43,13 @@ def getLocation(raw):
         for j in range(0, 4):
             raw['geo_'+str(i*10+j*1)]=raw.apply(lambda row: int(row['latL']==i and row['longL']==j),axis=1)
             geoVar.append('geo_'+str(i*10+j*1))
-    return geoVar
+    return geoVar,raw
 def conversion(raw):
-    cleanFeatures=convFeatures(raw)
+    cleanFeatures,raw=convFeatures(raw)
     extraFeatures = ['bathrooms', 'bedrooms', 'picCount', 'price','newness']
     raw['newness']= (pd.to_datetime('2005/11/23')-pd.to_datetime(raw['created'])).dt.days
-    geoVar=getLocation(raw)
-
-    var=cleanFeatures +extraFeatures+geoVar
+    geoVar,raw=getLocation(raw)
+    var=cleanFeatures+extraFeatures+geoVar
     raw_normalize = (raw[var] - raw[var].mean()) / (raw[var].std())
     raw['intercept'] = 1
     raw.update(raw_normalize)
@@ -61,3 +58,8 @@ def conversion(raw):
 
     return raw,var+['intercept']
 
+#0.922148515716
+# 0.944995418225
+# 0.744928707697
+# 0.609586396456
+# 0.514380318224
