@@ -5,43 +5,60 @@ import pandas as pd
 from neuralNetwork import  neuralNetworks as nn,sigmoid,sigDeriv
 import numpy as np
 import equation
-from treatments import conversion,getLocation
+from treatments import conversion,getTargetVar
 def taskManager(element,que,func):
     que.put(func(element))
+print "starting"
+start_time = time.time()
+if __name__ == '__main__':
+    raw=pd.read_json('input\\train.json')
+    test=pd.read_json('input\\test.json')
+    raw['target']=raw['interest_level'].map({'high':1,'medium':2,'low':3})
 
-raw=pd.read_json('input\\train.json')
-test=pd.read_json('input\\test.json')
-raw['target']=raw['interest_level'].map({'high':1,'medium':2,'low':3})
+    print "dataset brought to python"
+    # var,test=getLocation(test)
+    # geoVar,raw=getLocation(raw)
 
+    rawData=[]
+    tester=[]
+    raw1=raw.copy(deep=True)
+    test1=test.copy(deep=True)
+    print "extra copy created"
+    raw1,var=conversion(raw1)
+    test1,var=conversion(test1)
+    print "starting subsetting dataset"
+    for i in range(0,12):
+        rawData.append(raw[raw1['loc'+str(i)]==1])
+        tester.append(test[test1['loc'+str(i)]==1])
+    noSeg=len(rawData)
 
-# var,test=getLocation(test)
-# geoVar,raw=getLocation(raw)
-rawData=[]
-tester=[]
-noSeg=2#len(geoVar)
 #
 # for i in range(0,len(geoVar)):
-tester.append(test)
 
 
-def nnOutput(element):
+
+
+def nnOutput(element,analyse=False):
+    print "starting to run for subset"+str(element)
+    if analyse:analyseData=rawData[element].copy(deep=True)
     rawTransformed, var = conversion(rawData[element])
-    rawTransformed['high'] = rawData[element].interest_level.map(lambda row: int(row == 'high'))
-    rawTransformed['medium'] = rawData[element].interest_level.map(lambda row: int(row == 'medium'))
-    rawTransformed['low'] = rawData[element].interest_level.map(lambda row: int(row == 'low'))
-    d=nn(listOfMatrix=[np.random.rand(len(var),10),np.random.rand(10,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,iteration=500)
+    rawTransformed=getTargetVar(rawTransformed)
+    d=nn(listOfMatrix=[np.random.rand(len(var),6),np.random.rand(6,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,iteration=100)
     d.findEstimates()
     prediction=d.predict(test=tester[element])
-    temp = d.analyseObservation(dataSet=rawData[element], var=var)
-    temp.to_csv('output\\cost'  + '.csv', sep=',')
+    if analyse:
+        analyseData1 = analyseData.copy(deep=True)
+        analyseData = getTargetVar(analyseData)
+        temp = d.analyseObservation(dataSet=analyseData, var=var)
+        temp.update(other=analyseData1,join='left')
+        temp.to_csv('output\\cost'  + '.csv', sep=',')
     return prediction
 
 
 if __name__ == '__main__':
-    start_time=time.time()
+
     que=Manager().Queue()
-    pool=Pool(processes=cpu_count())
-    prediction=[i for i in range(0,noSeg-1)]
+    pool=Pool(processes=min(cpu_count(),noSeg-1))
 
     for element in range(0,noSeg-1):
         pool.apply_async(taskManager, args=(element,que,nnOutput))
@@ -56,7 +73,7 @@ if __name__ == '__main__':
     print "time taken is"
     print timeTaken
 
-#d.analyseObservation(dataSet=raw,var=var)
+
 # final=d.predict(test=test)
 # final.to_csv('output\\test.csv', sep=',')
 #ovr=equation.fit(raw,sheetName='sheet1',variables=var)
