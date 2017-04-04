@@ -4,8 +4,8 @@ from treatments import conversion
 from math import log
 def sigmoid(x):
     z=x
-    # z[z>15]=15
-    # z[z<-15]=-15
+    z[z>600.0]=600
+    z[z<-600.0]=-600.0
     return np.exp(z)/(1+np.exp(z))
 
 
@@ -46,22 +46,27 @@ class neuralNetworks(object):#please add a base term in your data while passing 
         self.change.append(learningRate * (-1.0 / (self.modelOutput.shape[0])) * (np.dot(np.transpose(self.layerOutput[0]),((self.actualOutput / self.modelOutput) * self.funcGradient(self.layerOutput[1])) - (
                (1 / np.sum(self.modelOutput, axis=1,keepdims=True)) * self.funcGradient(self.layerOutput[1])))))
 
+
+
         for i in range(0,len(self.change)):
-            self.layers[i].cofficient-=self.change[i]
+                self.layers[i].cofficient-=self.change[i]
+
     def findEstimates(self):
         best=100
         for i in range(1,self.iteration):
             self.feedForward()
-
-            if i<300:learningRate=2.0
-            elif i<1000:learningRate=0.5
-            elif i<4000:learningRate=0.2
-            else :learningRate=0.1
+            #
+            if i<100:learningRate=0.3
+            # elif i<1000:learningRate=0.5
+            # elif i<4000:learningRate=0.2
+            else:learningRate=0.1
             self.backwardPropagation(learningRate)
             if self.cost<best:
                 best=self.cost
-                bestCof=self.layers[0].cofficient
-        self.layers[0].cofficient=bestCof
+                bestCof0=self.layers[0].cofficient
+                bestCof1 = self.layers[1].cofficient
+        self.layers[0].cofficient=bestCof0
+        self.layers[1].cofficient=bestCof1
         print best
     def analyseObservation(self,dataSet,var):
         final=self.predict(dataSet)
@@ -74,9 +79,10 @@ class neuralNetworks(object):#please add a base term in your data while passing 
 
 
 
-    def predict(self,test):
+    def predict(self,test,first=True):
         summit = test[['listing_id']]
-        df1, variables = conversion(test)
+        if first:df1, variables = conversion(test)
+        else:df1, variables = conversion(test,first=False)
         X = df1[:].loc[:, variables]
         summit['key'] = range(1, len(summit) + 1)
         self.feedForward(X.as_matrix())

@@ -3,13 +3,15 @@ import numpy as np
 from sklearn.decomposition import PCA
 import numpy as np
 def mergeLocation(dataSet,nameList):
-    dict={0:[0],1:[1,2],2:[5,9,10,11,3,4],3:[7,8],4:[12,13],5:[14,15],6:[17,18,22,23,24,25,28,30,31,16,17,29,35],7:[19,20],8:[21],9:[26,27],10:[32,33,34],11:[6]}
+    dict={0:[0],1:[1,2],2:[5,9,10,11,3,4],3:[7,8],4:[12,13],5:[14,15],6:[17,18,22,23,24,25,28,30,31,16,29,35],7:[19,20],8:[21],9:[26,27],10:[32,33,34],11:[6]}
     varList=[]
     for key in dict.keys():
         cols=[]
         for ele in dict[key]:cols.append(nameList[ele])
         dataSet['loc'+str(key)]=pd.DataFrame(np.sum(dataSet[cols].as_matrix(),axis=1),columns=['var'],index=dataSet.index)['var']
         varList.append('loc'+str(key))
+
+
     return varList,dataSet
 
 def getTargetVar(data):
@@ -38,7 +40,6 @@ def getPCA(dataSet,variables,pcComponents):# adds pc components as pc0,pc1... fo
 
 def convFeatures(dataSet):
     dataSet=treatOutlier(dataSet)
-    dataSet.describe()
     finalFeatures = ['NOFEE', 'HARDWOODFLOORS', 'DISHWASHER', 'ON-SITELAUNDRY', 'OUTDOORSPACE']
     merger = {'dishwasher': 'Dishwasher', 'Laundry In Building': 'On-site Laundry', \
               'Laundry in Building': 'On-site Laundry', 'HARDWOOD': 'Hardwood Floors', 'Hardwood': 'Hardwood Floors', \
@@ -80,18 +81,25 @@ def getLocation(raw):
             raw['geo_'+str(i*10+j*1)]=raw.apply(lambda row: int(row['latitude']<latDivision[i] and row['latitude']>=latDivision[i-1] and row['longitude']<lonDivision[j] and row['longitude']>=lonDivision[j-1]),axis=1)
             geoVar.append('geo_'+str(i*10+j*1))
     return geoVar,raw
-def conversion(raw):
+def conversion(raw,first=True):
     raw=treatOutlier(raw)
     cleanFeatures,raw=convFeatures(raw)
     extraFeatures = ['bathrooms', 'bedrooms', 'picCount', 'price','newness']
     raw['newness']= (pd.to_datetime('2005/11/23')-pd.to_datetime(raw['created'])).dt.days
-    geoVar,raw=getLocation(raw)
-    geo,raw=mergeLocation(raw,geoVar)
+    if first:
+        geoVar,raw=getLocation(raw)
+        geo,raw=mergeLocation(raw,geoVar)
     standarize=cleanFeatures+extraFeatures
     raw_normalize = (raw[standarize] - raw[standarize].mean()) / (raw[standarize].std())
     raw['intercept'] = 1
     raw.update(raw_normalize)
     var=standarize+['intercept']
+    if not first:
+        location=[]
+        for i in range(0,12):
+            raw['locid'+str(i)]=raw.apply(lambda row:int(row['location']==i),axis=1)
+            location.append('locid'+str(i))
+        var=var+location
 
 
     #34.0126,44.8835
