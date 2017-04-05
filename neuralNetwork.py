@@ -1,15 +1,10 @@
 import numpy as np
 import pandas as pd
-from treatments import conversion
+from treatments import conversion,getTargetVar
+
 from math import log
-def sigmoid(x):
-    z=x
-    z[z>600.0]=600
-    z[z<-600.0]=-600.0
-    return np.exp(z)/(1+np.exp(z))
 
 
-def sigDeriv(x):return sigmoid(x)*(1-sigmoid(x))
 class layer(object):
     def __init__(self,cofficient):
         self.cofficient = cofficient
@@ -18,7 +13,7 @@ class layer(object):
         return self.values
     def gradientCorrection(self):pass
 class neuralNetworks(object):#please add a base term in your data while passing the data
-    def __init__(self,listOfMatrix,input,output,func,funcGradient,iteration=100):
+    def __init__(self,listOfMatrix,input,output,func,funcGradient,iteration=100,weight=None):
         self.numLayers=len(listOfMatrix)
         self.layers=[]
         self.input=input
@@ -26,6 +21,11 @@ class neuralNetworks(object):#please add a base term in your data while passing 
         self.funcGradient=funcGradient
         self.actualOutput=output
         self.layerOutput=[]
+        if weight is None:
+            rows=output.shape[0]
+            cols=output.shape[1]
+            self.weight=(1/float(rows))*np.ones((rows,1))
+        else :self.weight=weight
         self.iteration=iteration
         for i in range(0,self.numLayers):
             self.layers.append(layer(listOfMatrix[i]))
@@ -41,10 +41,11 @@ class neuralNetworks(object):#please add a base term in your data while passing 
     def backwardPropagation(self,learningRate):
         self.change=[]
         self.cost=(-1.0/(self.modelOutput.shape[0]))*np.sum(self.actualOutput*(np.log((self.modelOutput)/np.sum(self.modelOutput,axis=1,keepdims=True))))
-        self.change.append(learningRate*(-1.0/(self.modelOutput.shape[0]))*(np.dot(np.transpose(self.input),np.dot(((self.actualOutput/self.modelOutput)*self.funcGradient(self.layerOutput[1]))-\
-                    ((1/np.sum(self.modelOutput,axis=1,keepdims=True))*self.funcGradient(self.layerOutput[1])),np.transpose(self.layers[1].cofficient))*self.funcGradient(self.layerOutput[0]))))
-        self.change.append(learningRate * (-1.0 / (self.modelOutput.shape[0])) * (np.dot(np.transpose(self.layerOutput[0]),((self.actualOutput / self.modelOutput) * self.funcGradient(self.layerOutput[1])) - (
-               (1 / np.sum(self.modelOutput, axis=1,keepdims=True)) * self.funcGradient(self.layerOutput[1])))))
+        self.weightedCost=-np.sum(self.actualOutput*self.weight*(np.log((self.modelOutput)/np.sum(self.modelOutput,axis=1,keepdims=True))))
+        self.change.append(learningRate*-(np.dot(np.transpose(self.input),np.dot(((self.actualOutput*self.weight/self.modelOutput)*self.funcGradient(self.layerOutput[1]))-\
+                    ((self.weight/np.sum(self.modelOutput,axis=1,keepdims=True))*self.funcGradient(self.layerOutput[1])),np.transpose(self.layers[1].cofficient))*self.funcGradient(self.layerOutput[0]))))
+        self.change.append(learningRate * -(np.dot(np.transpose(self.layerOutput[0]),((self.actualOutput*self.weight / self.modelOutput) * self.funcGradient(self.layerOutput[1])) - (
+               (self.weight / np.sum(self.modelOutput, axis=1,keepdims=True)) * self.funcGradient(self.layerOutput[1])))))
 
 
 
@@ -54,9 +55,9 @@ class neuralNetworks(object):#please add a base term in your data while passing 
     def findEstimates(self):
         best=100
         for i in range(1,self.iteration):
-            self.feedForward()
+            self.feedForward(self.input)
             #
-            if i<100:learningRate=0.3
+            if i<100:learningRate=0.2
             # elif i<1000:learningRate=0.5
             # elif i<4000:learningRate=0.2
             else:learningRate=0.1
@@ -68,14 +69,12 @@ class neuralNetworks(object):#please add a base term in your data while passing 
         self.layers[0].cofficient=bestCof0
         self.layers[1].cofficient=bestCof1
         print best
-    def analyseObservation(self,dataSet,var):
-        final=self.predict(dataSet)
+    def analyseObservation(self,dataSet):
+        analyseData = getTargetVar(dataSet)
+        final=self.predict(analyseData)
 
-        dataSet['cost']=pd.DataFrame(np.sum(dataSet[['high','medium','low']].as_matrix()*np.log(final[['high','medium','low']].as_matrix()),axis=1),index=dataSet.index,columns=['cost'])['cost']
-        dataSet['intercept']=1
-        analysis=dataSet[var+['cost']+['high','medium','low']]
-        analysis=analysis.sort_values(by=['cost'])
-        return analysis
+        analyseData['cost']=-np.sum(dataSet[['high','medium','low']].as_matrix()*np.log(final[['high','medium','low']].as_matrix()),axis=1)
+        return analyseData
 
 
 
@@ -84,14 +83,12 @@ class neuralNetworks(object):#please add a base term in your data while passing 
         if first:df1, variables = conversion(test)
         else:df1, variables = conversion(test,first=False)
         X = df1[:].loc[:, variables]
-        summit['key'] = range(1, len(summit) + 1)
         self.feedForward(X.as_matrix())
         predictedNormalize=self.modelOutput/np.sum(self.modelOutput,axis=1,keepdims=True)
-        t = pd.DataFrame(predictedNormalize, columns=['high','medium','low'], index=summit.index)
-        t['key'] = range(1, len(t) + 1)
-        final = summit.merge(t, on='key', how='left')
-        final = final[['listing_id', 'high', 'medium', 'low']]
-        final = final.set_index('listing_id')
+        final = pd.DataFrame(predictedNormalize, columns=['high','medium','low'], index=test.index)
+
+        final.index.name='listing_id'
+
         return final
 
 

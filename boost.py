@@ -5,11 +5,13 @@ import pandas as pd
 from neuralNetwork import  neuralNetworks as nn
 import numpy as np
 import equation
+from Booster import booster
 from mathFunctions import sigmoid,sigDeriv
 from treatments import conversion,getTargetVar
 def taskManager(que,func,*args):
     que.put(func(*args))
 print "starting"
+
 start_time = time.time()
 def segment(raw,raw1,test,test1,i):
 
@@ -29,29 +31,17 @@ def segment(raw,raw1,test,test1,i):
         print [train[0].shape[0],train[1].shape[0],test[0].shape[0],test[1].shape[0]]
         return train,test
 extra=pd.DataFrame
-def nnOutput(train,test,element,analyse=False):
+def nnOutput(train1,test,element,analyse=False):
     print "starting to run for subset"
+    train=train1.copy(deep=True)
     if analyse:analyseData=train.copy(deep=True)
     if element<>-1:rawTransformed, var = conversion(train)
-    else:rawTransformed, var = conversion(train,first=False)
+    else:rawTransformed, var = conversion(dataSet=train)
     rawTransformed=getTargetVar(rawTransformed)
-    d=nn(listOfMatrix=[np.random.rand(len(var),8),np.random.rand(8,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,iteration=500)
-    d.findEstimates()
-    print d.cost
-    if analyse:
-        analyseData1 = analyseData.copy(deep=True)
-        temp = d.analyseObservation(dataSet=analyseData)
-        temp=temp[var + ['cost'] + ['high', 'medium', 'low']]
-        temp.update(other=analyseData1,join='left')
-        temp.to_csv('output\\cost'  + '.csv', sep=',')
-    if d.cost>0.6 and element<>-1:
-        print element
-        return element
-    else:
-        if element<>-1:prediction=d.predict(test=test)
-        else :prediction=d.predict(test=test,first=False)
+    nnObject=nn(listOfMatrix=[np.random.rand(len(var),8),np.random.rand(8,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,iteration=500)
+    d=booster(classifier=nnObject,maxIteration=50,test=test,trainCopy=train1)
+    return d.nniterate()
 
-        return prediction
 
 if __name__ == '__main__':
     raw=pd.read_json('input\\train.json')[0:1000]
@@ -98,7 +88,7 @@ if __name__ == '__main__':
 
     pool=Pool(processes=min(cpu_count(),noSeg-1))
     noSeg=len(rawData)
-    for element in range(0,noSeg):
+    for element in range(0,1):
         pool.apply_async(taskManager, args=(que,nnOutput,rawData[element],tester[element],element))
     pool.close()
     pool.join()
@@ -106,32 +96,8 @@ if __name__ == '__main__':
     pred =None
     for element in range(0,noSeg):
         got=que.get()
-        if isinstance(got, int ):failures.append(got)
-        elif pred is None :pred=got
+        if pred is None :pred=got
         else:pred=pred.append(got)
-
-    temp=rawData[failures[0]]
-    tempt=tester[failures[0]]
-    temp['location']=failures[0]
-    tempt['location']=failures[0]
-    fail=temp
-    son=tempt
-
-
-
-    for i in range(1,len(failures)):
-        temp = rawData[failures[i]]
-        tempt = tester[failures[i]]
-        temp['location'] = failures[i]
-        tempt['location'] = failures[i]
-        fail=fail.append(temp)
-        son=son.append(tempt)
-    improvers=nnOutput(fail, son, -1)
-    if pred is None:pred=improvers
-    else:pred=pred.append(improvers)
-
-
-
 
     pred=pred.sort_index()
     print pred.shape[0]
