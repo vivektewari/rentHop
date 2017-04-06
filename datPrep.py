@@ -29,13 +29,11 @@ def segment(raw,raw1,test,test1,i):
         print [train[0].shape[0],train[1].shape[0],test[0].shape[0],test[1].shape[0]]
         return train,test
 extra=pd.DataFrame
-def nnOutput(train,test,element,analyse=False):
+def nnOutput(train,test,element,var,analyse=False):
     print "starting to run for subset"
     if analyse:analyseData=train.copy(deep=True)
-    if element<>-1:rawTransformed, var = conversion(train)
-    else:rawTransformed, var = conversion(train,first=False)
-    rawTransformed=getTargetVar(rawTransformed)
-    d=nn(listOfMatrix=[np.random.rand(len(var),8),np.random.rand(8,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,iteration=500)
+    rawTransformed=getTargetVar(train)
+    d=nn(listOfMatrix=[np.random.rand(len(var),8),np.random.rand(8,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,variables=var,iteration=500)
     d.findEstimates()
     print d.cost
     if analyse:
@@ -62,8 +60,8 @@ if __name__ == '__main__':
     # var,test=getLocation(test)
     # geoVar,raw=getLocation(raw)
 
-    rawData=[]
-    tester=[]
+    rawData1=[]
+    tester1=[]
     raw1=raw.copy(deep=True)
     test1=test.copy(deep=True)
     print "extra copy created"
@@ -74,7 +72,7 @@ if __name__ == '__main__':
     pool = Pool(processes=min(cpu_count(), noSeg - 1))
     que = Manager().Queue()
     for i in range(0,noSeg):
-        pool.apply_async(taskManager, args=( que,segment,raw,raw1,test,test1,i ))
+        pool.apply_async(taskManager, args=( que,segment,raw,raw1,test,test1,i))
 
 
     pool.close()
@@ -82,24 +80,19 @@ if __name__ == '__main__':
     for i in range(0,noSeg):
         train,test=que.get()
 
-        rawData+=train
-        tester+=test
-
-#
-# for i in range(0,len(geoVar)):
-
-
-
-
-
-
-
-
+        rawData1+=train
+        tester1+=test
 
     pool=Pool(processes=min(cpu_count(),noSeg-1))
-    noSeg=len(rawData)
+    noSeg=len(rawData1)
+    rawData=[]
+    tester=[]
+    for i in range(0, noSeg):
+        rawData.append(conversion(rawData1[i])[0])
+        tester.append(conversion(tester1[i])[0])
+
     for element in range(0,noSeg):
-        pool.apply_async(taskManager, args=(que,nnOutput,rawData[element],tester[element],element))
+        pool.apply_async(taskManager, args=(que,nnOutput,rawData[element],tester[element],element,var))
     pool.close()
     pool.join()
     failures=[]
@@ -126,7 +119,7 @@ if __name__ == '__main__':
         tempt['location'] = failures[i]
         fail=fail.append(temp)
         son=son.append(tempt)
-    improvers=nnOutput(fail, son, -1)
+    improvers=nnOutput(fail, son, -1,var)
     if pred is None:pred=improvers
     else:pred=pred.append(improvers)
 

@@ -90,7 +90,7 @@ def conversion(raw,first=True):
         geoVar,raw=getLocation(raw)
         geo,raw=mergeLocation(raw,geoVar)
     standarize=cleanFeatures+extraFeatures
-    raw_normalize = (raw[standarize] - raw[standarize].mean()) / (raw[standarize].std())
+    raw_normalize = (raw[standarize] - raw[standarize].mean()) / (raw[standarize].max()-raw[standarize].min())
     raw['intercept'] = 1
     raw.update(raw_normalize)
     var=standarize+['intercept']

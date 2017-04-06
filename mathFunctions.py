@@ -1,11 +1,7 @@
 import numpy as np
 def sigmoid(x):
     z=x
-    if np.isnan(z).any():
-        print z
-        y=0
-    z[z>600.0]=600
-    z[z<-600.0]=-600.0
+    #if np.isnan(z).any():
     return np.exp(z)/(1+np.exp(z))
 
 

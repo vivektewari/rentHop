@@ -1,6 +1,7 @@
 import numpy as np
 from mathFunctions import sigmoid,sigDeriv
 from treatments import getTargetVar
+import pandas as pd
 class booster(object):
     """
     assignes weights to each observation
@@ -17,21 +18,47 @@ class booster(object):
         self.test=test
         self.classifierWeight=[]
         self.trainCopy=trainCopy
-    def nniterate(self):
+    def boostIt(self):
         classi=self.classifier
         classi.weight = (1 / float(classi.actualOutput.shape[0])) * np.ones(shape=(classi.actualOutput.shape[0], 1))
         for i in range(0,self.maxIteration):
+            for j in range(0,len(classi.layers)):classi.layers[j].cofficient=np.random.rand(classi.layers[j].cofficient.shape[0],classi.layers[j].cofficient.shape[1])
             classi.findEstimates()
-            classifierWeight=np.log((2.5-classi.weightedCost)/classi.weightedCost)
-            tes=(classi.predict(self.test)).as_matrix()
-            self.prediction=tes*classifierWeight+self.prediction
+            classifierWeight=np.log((2.5-classi.cost)/classi.cost)
+            tes=classi.predict(self.test)
+            self.prediction =tes*classifierWeight+self.prediction
             self.classifierWeight.append(classifierWeight)
 
             costMatrix=(self.classifier.analyseObservation(self.trainCopy))['cost'].as_matrix()
             y=sigmoid(classifierWeight*(costMatrix.reshape((costMatrix.shape[0],1))>0.55).astype(int))
+            if (np.isnan(y)).any():print "weight comes out to be nan"
             newWeight=classi.weight*y
             classi.weight=newWeight/sum(newWeight)
 
+
+        return self.prediction
+    def nniterate(self):
+        classi=self.classifier
+        classi.weight = (1 / float(classi.actualOutput.shape[0])) * np.ones(shape=(classi.actualOutput.shape[0], 1))
+        best=5.0
+        for i in range(0,self.maxIteration):
+            for j in range(0,len(classi.layers)):classi.layers[j].cofficient=np.random.rand(classi.layers[j].cofficient.shape[0],classi.layers[j].cofficient.shape[1])
+            classi.findEstimates()
+            if classi.cost<best:
+                best=classi.cost
+                self.prediction = classi.predict(self.test)
+
+
+
+            classifierWeight=np.log((2.5-classi.cost)/classi.cost)
+            self.classifierWeight.append(classifierWeight)
+            costMatrix=(self.classifier.analyseObservation(self.trainCopy))['cost'].as_matrix()
+            y=sigmoid(classifierWeight*(costMatrix.reshape((costMatrix.shape[0],1))>0.55).astype(int))
+            if (np.isnan(y)).any():print "weight comes out to be nan"
+            newWeight=classi.weight*y
+            classi.weight=newWeight/sum(newWeight)
+
+        print best
         return self.prediction
 
 

@@ -31,29 +31,27 @@ def segment(raw,raw1,test,test1,i):
         print [train[0].shape[0],train[1].shape[0],test[0].shape[0],test[1].shape[0]]
         return train,test
 extra=pd.DataFrame
-def nnOutput(train1,test,element,analyse=False):
+def nnOutput(train1,test,element,var,analyse=False):
     print "starting to run for subset"
     train=train1.copy(deep=True)
     if analyse:analyseData=train.copy(deep=True)
-    if element<>-1:rawTransformed, var = conversion(train)
-    else:rawTransformed, var = conversion(dataSet=train)
-    rawTransformed=getTargetVar(rawTransformed)
-    nnObject=nn(listOfMatrix=[np.random.rand(len(var),8),np.random.rand(8,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,iteration=500)
-    d=booster(classifier=nnObject,maxIteration=50,test=test,trainCopy=train1)
+    rawTransformed=getTargetVar(train)
+    nnObject=nn(listOfMatrix=[np.random.rand(len(var),8),np.random.rand(8,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,variables=var,iteration=500)
+    d=booster(classifier=nnObject,maxIteration=100,test=test,trainCopy=train1)
     return d.nniterate()
 
 
 if __name__ == '__main__':
-    raw=pd.read_json('input\\train.json')[0:1000]
-    test=pd.read_json('input\\test.json')[0:1000]
+    raw=pd.read_json('input\\train.json')
+    test=pd.read_json('input\\test.json')
     raw['target']=raw['interest_level'].map({'high':1,'medium':2,'low':3})
 
     print "dataset brought to python"
     # var,test=getLocation(test)
     # geoVar,raw=getLocation(raw)
 
-    rawData=[]
-    tester=[]
+    rawData1=[]
+    tester1=[]
     raw1=raw.copy(deep=True)
     test1=test.copy(deep=True)
     print "extra copy created"
@@ -64,7 +62,7 @@ if __name__ == '__main__':
     pool = Pool(processes=min(cpu_count(), noSeg - 1))
     que = Manager().Queue()
     for i in range(0,noSeg):
-        pool.apply_async(taskManager, args=( que,segment,raw,raw1,test,test1,i ))
+        pool.apply_async(taskManager, args=( que,segment,raw,raw1,test,test1,i))
 
 
     pool.close()
@@ -72,33 +70,30 @@ if __name__ == '__main__':
     for i in range(0,noSeg):
         train,test=que.get()
 
-        rawData+=train
-        tester+=test
-
-#
-# for i in range(0,len(geoVar)):
-
-
-
-
-
-
-
+        rawData1+=train
+        tester1+=test
 
 
     pool=Pool(processes=min(cpu_count(),noSeg-1))
-    noSeg=len(rawData)
-    for element in range(0,1):
-        pool.apply_async(taskManager, args=(que,nnOutput,rawData[element],tester[element],element))
+    noSeg=len(rawData1)
+    rawData=[]
+    tester=[]
+    for i in range(0, noSeg):
+        rawData.append(conversion(rawData1[i])[0])
+        tester.append(conversion(tester1[i])[0])
+
+    for element in range(0,noSeg):
+        pool.apply_async(taskManager, args=(que,nnOutput,rawData[element],tester[element],element,var))
     pool.close()
     pool.join()
-    failures=[]
     pred =None
     for element in range(0,noSeg):
         got=que.get()
         if pred is None :pred=got
         else:pred=pred.append(got)
 
+    t=pred.sum(axis=1)
+    pred=pred.div(pred.sum(axis=1),axis=0)
     pred=pred.sort_index()
     print pred.shape[0]
     print np.sum(pred.as_matrix())
