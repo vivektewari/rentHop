@@ -28,7 +28,7 @@ def segment(raw,raw1,test,test1,i):
             i+=1
         print [train[0].shape[0],train[1].shape[0],test[0].shape[0],test[1].shape[0]]
         return train,test
-extra=pd.DataFrame
+
 def nnOutput(train,test,element,var,analyse=False):
     print "starting to run for subset"
     if analyse:analyseData=train.copy(deep=True)

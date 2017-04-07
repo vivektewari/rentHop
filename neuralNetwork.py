@@ -96,9 +96,9 @@ class neuralNetworks(object):#please add a base term in your data while passing 
         X = test[:].loc[:, self.variables]
         self.feedForward(X.as_matrix())
         predictedNormalize=self.modelOutput/np.sum(self.modelOutput,axis=1,keepdims=True)
-        final = pd.DataFrame(predictedNormalize, columns=['high','medium','low'], index=test.index)
+        final = pd.DataFrame(predictedNormalize, columns=['high','medium','low'], index=test.listing_id)
 
-        final.index.name='listing_id'
+
 
         return final
 

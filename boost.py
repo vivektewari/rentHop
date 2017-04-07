@@ -17,20 +17,20 @@ def segment(raw,raw1,test,test1,i):
 
         y=raw[raw1['loc' + str(i)] == 1],test[test1['loc' + str(i)] == 1]
 
-        train=[]
-        test=[]
-        i=0
-        med = y[0][y[0]['interest_level']=='high']['price'].quantile(0.9)
-        output=train
-        for element in y:
+        train=[y[0]]
+        test=[y[1]]
 
-            if i==1 :output=test
-            output.append(element[element['price'] > med])
-            output.append(element[element['price'] <= med])
-            i+=1
-        print [train[0].shape[0],train[1].shape[0],test[0].shape[0],test[1].shape[0]]
+        # med = y[0][y[0]['interest_level']=='high']['price'].quantile(0.9)
+        # output=train
+        # for element in y:
+        #
+        #     if i==1 :output=test
+        #     output.append(element[element['price'] > med])
+        #     output.append(element[element['price'] <= med])
+        #     i+=1
+        print [train[0].shape[0],test[0].shape[0]]
         return train,test
-extra=pd.DataFrame
+
 def nnOutput(train1,test,element,var,analyse=False):
     print "starting to run for subset"
     train=train1.copy(deep=True)
@@ -92,8 +92,7 @@ if __name__ == '__main__':
         if pred is None :pred=got
         else:pred=pred.append(got)
 
-    t=pred.sum(axis=1)
-    pred=pred.div(pred.sum(axis=1),axis=0)
+
     pred=pred.sort_index()
     print pred.shape[0]
     print np.sum(pred.as_matrix())
