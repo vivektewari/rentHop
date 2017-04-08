@@ -63,7 +63,7 @@ class neuralNetworks(object):#please add a base term in your data while passing 
         for i in range(0, len(self.layers)):bestCof.append(copy.deepcopy(self.layers[i].cofficient))
         self.feedForward()
         for i in range(1,self.iteration):
-            if i<100:learningRate=0.2
+            if i<200:learningRate=3
             else:learningRate=0.1
             self.backwardPropagation(learningRate)
             self.feedForward()
