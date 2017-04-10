@@ -36,9 +36,10 @@ def nnOutput(train1,test,element,var,analyse=False):
     train=train1.copy(deep=True)
     if analyse:analyseData=train.copy(deep=True)
     rawTransformed=getTargetVar(train)
-    nnObject=nn(listOfMatrix=[np.random.rand(len(var),8),np.random.rand(8,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,variables=var,iteration=500)
-    d=booster(classifier=nnObject,maxIteration=100,test=test,trainCopy=train1)
-    return d.nniterate()
+    nnObject=nn(listOfMatrix=[np.random.rand(len(var),8),np.random.rand(8,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,variables=var,iteration=400)
+    d=booster(classifier=nnObject,maxIteration=50,test=test,trainCopy=train1)
+    if analyse:return d.weightSelecter(analyse)
+    else:return d.nniterate()
 
 
 if __name__ == '__main__':

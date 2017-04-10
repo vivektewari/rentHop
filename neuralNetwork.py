@@ -11,8 +11,6 @@ class layer(object):
         self.cofficient = cofficient
     def output(self,input):
         self.values=np.dot(input,self.cofficient)
-        if (abs(self.values)>600).any():
-            T=0
         return self.values
     def gradientCorrection(self):pass
 class neuralNetworks(object):#please add a base term in your data while passing the data
@@ -63,8 +61,8 @@ class neuralNetworks(object):#please add a base term in your data while passing 
         for i in range(0, len(self.layers)):bestCof.append(copy.deepcopy(self.layers[i].cofficient))
         self.feedForward()
         for i in range(1,self.iteration):
-            if i<200:learningRate=3
-            else:learningRate=0.1
+            if i<200:learningRate=2
+            else:learningRate=0.2
             self.backwardPropagation(learningRate)
             self.feedForward()
             if (np.isnan(self.modelOutput)).any():

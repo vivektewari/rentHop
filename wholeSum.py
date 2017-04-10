@@ -1,10 +1,12 @@
 from multiprocessing import Pool,Process,cpu_count,Manager
 import time
+import copy
 import json,csv
 import pandas as pd
 from neuralNetwork import  neuralNetworks as nn
 import numpy as np
 import equation
+from segmentation import makeCart
 from mathFunctions import sigmoid,sigDeriv
 from treatments import conversion,getTargetVar,getManager
 def taskManager(que,func,*args):
@@ -33,110 +35,85 @@ def nnOutput(train,test,element,var,analyse=False):
     print "starting to run for subset"
     if analyse:analyseData=train.copy(deep=True)
     rawTransformed=train
-    d=nn(listOfMatrix=[np.random.rand(len(var),8),np.random.rand(8,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,variables=var,iteration=0)
+    secondLayer=5
+    d=nn(listOfMatrix=[np.random.rand(len(var),secondLayer),np.random.rand(secondLayer,3)],input=rawTransformed[var].as_matrix(),output=rawTransformed[['high','medium','low']].as_matrix(),func=sigmoid,funcGradient=sigDeriv,variables=var,iteration=500)
     d.findEstimates()
-    print d.cost
+    print d.cost,d.input.shape[0]
     if analyse:
         analyseData1 = analyseData.copy(deep=True)
-        temp = d.analyseObservation(dataSet=analyseData)
-        temp=temp[var + ['cost'] + ['high', 'medium', 'low']]
-        temp.update(other=analyseData1,join='left')
-        temp.to_csv('output\\cost'  + '.csv', sep=',')
-    prediction=d.predict(test=tester)
+        temp = d.analyseObservation(dataSet=analyseData1)
+        return temp
+    prediction=d.predict(test=test)
 
-    return prediction
-
-if __name__ == '__main__':
-    raw=pd.read_json('input\\train.json')
-    test=pd.read_json('input\\test.json')
+    return prediction,d.cost,d.input.shape[0]
 
 
-    print "dataset brought to python"
-    # var,test=getLocation(test)
-    # geoVar,raw=getLocation(raw)
+raw=pd.read_json('input\\train.json')
 
-    # rawData1=[]
-    # tester1=[]
-    # raw1=raw.copy(deep=True)
-    # test1=test.copy(deep=True)
-    # print "extra copy created"
-    # raw1,var=conversion(raw1)
-    # test1,var=conversion(test1)
-    # print "starting subsetting dataset"
-    # noSeg=12
-    # pool = Pool(processes=min(cpu_count(), noSeg - 1))
-    # que = Manager().Queue()
-    # for i in range(0,noSeg):
-    #     pool.apply_async(taskManager, args=( que,segment,raw,raw1,test,test1,i))
-    #
-    #
-    # pool.close()
-    # pool.join()
-    # for i in range(0,noSeg):
-    #     train,test=que.get()
-    #
-    #     rawData1+=train
-    #     tester1+=test
-    #
-    # pool=Pool(processes=min(cpu_count(),noSeg-1))
-    # noSeg=len(rawData1)
-    # rawData=[]
-    # tester=[]
-    # for i in range(0, noSeg):
-    #     rawData.append(conversion(rawData1[i])[0])
-    #     tester.append(conversion(tester1[i])[0])
-    raw = getTargetVar(raw)
-    rawData,var=conversion(raw)
-    manager,rawData=getManager(rawData)
-    tester,var=conversion(test)
-    manager,tester = getManager(tester,manager)
-    # for element in range(0,1):
-    var=var+['high_manager','low_manager']
-    pred=nnOutput(rawData,tester,1,var)
+test=pd.read_json('input\\test.json')
+r=copy.deepcopy(raw)
+t=copy.deepcopy(test)
 
-    # pool.close()
-    # pool.join()
-    # failures=[]
-    # pred =None
-    # for element in range(0,noSeg):
-    #     got=que.get()
-    #     if isinstance(got, int ):failures.append(got)
-    #     elif pred is None :pred=got
-    #     else:pred=pred.append(got)
-    #
-    # temp=rawData[failures[0]]
-    # tempt=tester[failures[0]]
-    # temp['location']=failures[0]
-    # tempt['location']=failures[0]
-    # fail=temp
-    # son=tempt
-    #
-    #
-    #
-    # for i in range(1,len(failures)):
-    #     temp = rawData[failures[i]]
-    #     tempt = tester[failures[i]]
-    #     temp['location'] = failures[i]
-    #     tempt['location'] = failures[i]
-    #     fail=fail.append(temp)
-    #     son=son.append(tempt)
-    # improvers=nnOutput(fail, son, -1,var)
+print "dataset brought to python"
+
+raw = getTargetVar(raw)
+rawData,var=conversion(raw)
+manager,rawData=getManager(rawData)
+tester,var=conversion(test)
+manager,tester = getManager(tester,manager)
+# for element in range(0,1):
+var=var  +['high_manager','low_manager']
+
+#split 1 price >=3600  17632, further split in price didnt ring better result,2.low_manager>0.7303
+splitter=1300
+# rawData.update(r)
+rawData=rawData[r['price']<3100]
+r=r[r['price']<3100]
+# rindexes=rawData.query('high_manager>0').index
+# tindexes=tester.query('high_manager>0').index
+# pred = nnOutput(rawData.loc[rindexes,:], tester.loc[tindexes,:], 1, var,True)
+# # pred=nnOutput(rawData, tester, 1, var,True)
+# pred.update(r)
+# pred=pred[var+['high','medium','low','cost']]
+# pred.to_csv('output\\highnalysis.csv', sep=',')
+# for i in range(20,40):
+#     split=splitter+i*50
+#     print split
+#     pred,cost1,row1=nnOutput(rawData[r['price']<split],tester[t['price']<split],1,var)
+#     pred, cost2, row2=nnOutput(rawData[r['price']>=split],tester[t['price']>=split],1,var)
+#     print (cost1*row1+cost2*row2)/31720
+#from boost import nnOutput
+var=var +['high_manager','low_manager']
+r=r[rawData['low_manager']<=0.7303]
+rawData=rawData[rawData['low_manager']<=0.7303]
+
+tester=rawData
+rindexes=rawData.query('low_manager <=0.5084').index
+tindexes=tester.query('low_manager <= 0.5084').index
+# rawData1=rawData.loc[rindexes,:]
+# rawData2=rawData.drop(rindexes)
+
+pred1= nnOutput(rawData.loc[rindexes,:], tester.loc[tindexes,:], 1, var,True)
+pred2= nnOutput(rawData.drop(rindexes), tester.drop(tindexes), 1, var,True)
+pred=pred1.append(pred2)
+pred.update(r)
+pred=pred[var+['high','medium','low','cost']]
+pred.to_csv('output\\highnalysis.csv', sep=',')
+#print (cost1*row1+cost2*row2)/13826
+# p=makeCart(rawData.loc[rindexes,var].as_matrix(),rawData.loc[rindexes,['high','medium','low']].as_matrix(),var)
+
+#
+#
+#
+#
+#
+# pred=pred.sort_index()
+# print pred.shape[0]
+# print np.sum(pred.as_matrix())
+# pred.to_csv('output\\test.csv', sep=',')
+# timeTaken = time.time() - start_time
+# print "time taken is"
+# print timeTaken
 
 
-
-
-
-    pred=pred.sort_index()
-    print pred.shape[0]
-    print np.sum(pred.as_matrix())
-    pred.to_csv('output\\test.csv', sep=',')
-    timeTaken = time.time() - start_time
-    print "time taken is"
-    print timeTaken
-
-
-# final=d.predict(test=test)
-# final.to_csv('output\\test.csv', sep=',')
-#ovr=equation.fit(raw,sheetName='sheet1',variables=var)
-#equation.predict(ovr,test)
 

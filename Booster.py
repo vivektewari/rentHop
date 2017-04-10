@@ -18,7 +18,7 @@ class booster(object):
         self.test=test
         self.classifierWeight=[]
         self.trainCopy=trainCopy
-    def nniterate(self):
+    def nniterate(self,train=False):
         classi=self.classifier
         classi.weight = (1 / float(classi.actualOutput.shape[0])) * np.ones(shape=(classi.actualOutput.shape[0], 1))
         for i in range(0,self.maxIteration):
@@ -34,9 +34,16 @@ class booster(object):
             if (np.isnan(y)).any():print "weight comes out to be nan"
             newWeight=classi.weight*y
             classi.weight=newWeight/sum(newWeight)
-        pred=self.prediction.div(np.sum(self.prediction,axis=1),axis=0)
+        self.prediction = self.prediction.div(np.sum(self.prediction, axis=1), axis=0)
+        pred=self.prediction
+        if train:
+            self.trainCopy.index=self.prediction.index
+            pred=self.prediction.join(self.trainCopy,how='left',rsuffix='_t')
+            pred['cost']=np.log(pred['high'])*pred['high_t']+np.log(pred['medium'])*pred['medium_t']+np.log(pred['low'])*pred['low_t']
+            print np.sum(pred['cost'])/self.trainCopy.shape[0],self.trainCopy.shape[0]
+
         return pred
-    def weightSelecter(self):
+    def weightSelecter(self,train=False):
         classi=self.classifier
         classi.weight = (1 / float(classi.actualOutput.shape[0])) * np.ones(shape=(classi.actualOutput.shape[0], 1))
         best=5.0
