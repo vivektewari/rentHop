@@ -112,7 +112,7 @@ def conversion(raw):
     raw_normalize = (raw[standarize] - raw[standarize].mean()) / (raw[standarize].max()-raw[standarize].min())
     raw['intercept'] = 1
     raw.update(raw_normalize)
-    var=standarize+['intercept']+geo
+    var=['intercept']+standarize+geo
 
 
 

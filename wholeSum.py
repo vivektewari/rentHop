@@ -49,7 +49,7 @@ def nnOutput(train,test,element,var,analyse=False):
     return prediction,d.cost,d.input.shape[0]
 
 
-raw=pd.read_json('input\\train.json')[0:1000]
+raw=pd.read_json('input\\train.json')
 
 test=pd.read_json('input\\test.json')[0:1000]
 r=copy.deepcopy(raw)
@@ -63,7 +63,7 @@ manager,rawData=getManager(rawData)
 tester,var=conversion(test)
 manager,tester = getManager(tester,manager)
 # for element in range(0,1):
-var=var  +['high_manager','low_manager']
+var=var +['high_manager','low_manager']
 
 #split 1 price >=3600  17632, further split in price didnt ring better result,2.low_manager>0.7303
 splitter=1300
@@ -84,11 +84,13 @@ r=r[r['price']<3100]
 #     pred, cost2, row2=nnOutput(rawData[r['price']>=split],tester[t['price']>=split],1,var)
 #     print (cost1*row1+cost2*row2)/31720
 #from boost import nnOutput
-var=var +['listing_id']
+#
 r=r[rawData['low_manager']<=0.7303]
 rawData=rawData[rawData['low_manager']<=0.7303]
-rawData['listing_id']=rawData['listing_id'].mean()/(rawData['listing_id'].max()-rawData['listing_id'].min())
+rawData['listing_id']=(rawData['listing_id']-rawData['listing_id'].mean())/(rawData['listing_id'].max()-rawData['listing_id'].min())
+var=var+['listing_id']
 tester=rawData
+
 # rindexes=rawData.query('low_manager <=0.5084').index
 # tindexes=tester.query('low_manager <= 0.5084').index
 # # rawData1=rawData.loc[rindexes,:]
@@ -101,25 +103,54 @@ tester=rawData
 # pred=pred[var+['high','medium','low','cost']]
 # pred.to_csv('output\\highnalysis.csv', sep=',')
 data=rawData[var].as_matrix()
+y=data**2
+data=np.hstack((data,y))
+si=rawData.shape[0]
+sq=[]
+for element in var:
+    sq.append(element+"_sq")
+var=var+sq
 def fun(p):
-    a=(sigmoid(np.dot(data,np.matrix(p.reshape(len(var),2)))))
+    mid=len(p)/2
+    p1=p[0:mid]
+    p2=p[mid:2*mid]
+    prob=np.transpose(np.matrix(np.vstack((p1,p2))))
+    a=(sigmoid(np.dot(data,prob)))
     b=1-np.sum(a,axis=1)
-    prob=np.matrix(np.hstack((a,b)))
-    logp=np.log(prob)
-    t=np.sum(np.multiply(rawData[['high','medium','low']].as_matrix(),prob))
+    probability=np.matrix(np.hstack((a,b)))
+    logp=np.log(probability)
+    #print prob
+    t=np.sum(np.multiply(rawData[['high','medium','low']].as_matrix(),logp))/si
+    return -t
+# rn=np.log(np.transpose(np.matrix([rawData['high'].mean(),rawData['medium'].mean(),rawData['low'].mean()])))
+# print -np.sum(np.dot(rawData[['high','medium','low']].as_matrix(),rn))/rawData.shape[0]
+#f=fun(np.random.rand(len(var)*2))
+def sum1(p):
+    mid=len(p)/2
+    p1=p[0:mid]
+    p2=p[mid:2*mid]
+    prob=np.transpose(np.matrix(np.vstack((p1,p2))))
+    t=np.squeeze(np.array(np.ones(shape=(data.shape[0], 1)) - np.sum((sigmoid(np.dot(data, prob))), axis=1)))
+    #print t
     return t
-f=fun(np.random.rand(len(var)*2))
-cons = ({'type': 'ineq', 'fun': lambda p:  np.squeeze(np.array(np.ones(shape=(data.shape[0],1))-np.sum(sigmoid(np.dot(data,np.matrix(p.reshape(len(var),2)))),axis=1)))},
+
+cons = ({'type': 'ineq', 'fun':lambda p:sum1(p)},
          {'type': 'ineq', 'fun':lambda p: np.squeeze(np.array(sigmoid(np.dot(data, p[0:len(var)].reshape(len(var),1)))))},
         {'type': 'ineq', 'fun':lambda p: np.squeeze(np.array(sigmoid(np.dot(data, p[len(var):2*len(var)].reshape(len(var),1)))))})
 
+
 # t= np.random.rand(len(var),3)
 # r=np.sum(sigmoid(np.dot(data,t)),axis=1,keepdims=True)-np.ones(shape=(data.shape[0],1))
+pinitialize=np.random.rand(len(var)*2)
+pinitialize[0]=-8.9
+pinitialize[0+len(var)]=-8.9
 
-res = minimize(fun, np.random.rand(len(var)*2), method='SLSQP',  constraints=cons)
 
+res = minimize(fun, pinitialize, method='SLSQP',  constraints=cons)
 
-print fun(res.x)/279
+#print (sigmoid(np.dot(data,np.matrix((res.x).reshape(len(var),2)))))
+print fun(res.x)
+print rawData.shape[0]
 #print (cost1*row1+cost2*row2)/13826
 # p=makeCart(rawData.loc[rindexes,var].as_matrix(),rawData.loc[rindexes,['high','medium','low']].as_matrix(),var)
 
