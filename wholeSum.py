@@ -102,15 +102,15 @@ tester=rawData
 # pred.update(r)
 # pred=pred[var+['high','medium','low','cost']]
 # pred.to_csv('output\\highnalysis.csv', sep=',')
-data=rawData[var].as_matrix()
-y=data**2
-data=np.hstack((data,y))
-si=rawData.shape[0]
-sq=[]
-for element in var:
-    sq.append(element+"_sq")
-var=var+sq
-def fun(p):
+
+# y=data**2
+# data=np.hstack((data,y))
+# si=rawData.shape[0]
+# sq=[]
+# for element in var:
+#     sq.append(element+"_sq")
+# var=var+sq
+def costMatrix(p):
     mid=len(p)/2
     p1=p[0:mid]
     p2=p[mid:2*mid]
@@ -119,9 +119,12 @@ def fun(p):
     b=1-np.sum(a,axis=1)
     probability=np.matrix(np.hstack((a,b)))
     logp=np.log(probability)
-    #print prob
-    t=np.sum(np.multiply(rawData[['high','medium','low']].as_matrix(),logp))/si
-    return -t
+    cost=-np.sum(np.multiply(target, logp),axis=1)
+    return cost
+def fun(p):
+    cost = costMatrix(p)
+    return (np.sum(cost,axis=0))[0,0]/cost.shape[0]
+
 # rn=np.log(np.transpose(np.matrix([rawData['high'].mean(),rawData['medium'].mean(),rawData['low'].mean()])))
 # print -np.sum(np.dot(rawData[['high','medium','low']].as_matrix(),rn))/rawData.shape[0]
 #f=fun(np.random.rand(len(var)*2))
@@ -133,24 +136,39 @@ def sum1(p):
     t=np.squeeze(np.array(np.ones(shape=(data.shape[0], 1)) - np.sum((sigmoid(np.dot(data, prob))), axis=1)))
     #print t
     return t
+cons = ({'type': 'ineq', 'fun': lambda p: sum1(p)},
+        {'type': 'ineq',
+         'fun': lambda p: np.squeeze(np.array(sigmoid(np.dot(data, p[0:len(var)].reshape(len(var), 1)))))},
+        {'type': 'ineq', 'fun': lambda p: np.squeeze(
+            np.array(sigmoid(np.dot(data, p[len(var):2 * len(var)].reshape(len(var), 1)))))})
 
-cons = ({'type': 'ineq', 'fun':lambda p:sum1(p)},
-         {'type': 'ineq', 'fun':lambda p: np.squeeze(np.array(sigmoid(np.dot(data, p[0:len(var)].reshape(len(var),1)))))},
-        {'type': 'ineq', 'fun':lambda p: np.squeeze(np.array(sigmoid(np.dot(data, p[len(var):2*len(var)].reshape(len(var),1)))))})
 
 
 # t= np.random.rand(len(var),3)
 # r=np.sum(sigmoid(np.dot(data,t)),axis=1,keepdims=True)-np.ones(shape=(data.shape[0],1))
 pinitialize=np.random.rand(len(var)*2)
-pinitialize[0]=-8.9
-pinitialize[0+len(var)]=-8.9
+pinitialize[0]=-6.9
+pinitialize[0+len(var)]=-6.9
+data = rawData[var].as_matrix()
+target=rawData[['high', 'medium', 'low']].as_matrix()
+for i in range(1,20):
 
+    res = minimize(fun, pinitialize, method='SLSQP',  constraints=cons)
+    r = costMatrix(res.x)
+    if np.sum(r)<>np.nan:
+        temp = np.hstack((r,data,target))
+        temp=temp[temp[:,0].argsort()]
+        temp=np.squeeze(temp,1)
+        data=temp[0:int(temp.shape[0]-0.01*temp.shape[0]),1:temp.shape[1]-3]
+        target=temp[0:int(temp.shape[0]-0.01*temp.shape[0]),temp.shape[1]-3:temp.shape[1]]
+    print data.shape[0],res.fun,i
 
-res = minimize(fun, pinitialize, method='SLSQP',  constraints=cons)
 
 #print (sigmoid(np.dot(data,np.matrix((res.x).reshape(len(var),2)))))
-print fun(res.x)
-print rawData.shape[0]
+#
+# r=costMatrix(res.x)
+# e=sorter(r)
+
 #print (cost1*row1+cost2*row2)/13826
 # p=makeCart(rawData.loc[rindexes,var].as_matrix(),rawData.loc[rindexes,['high','medium','low']].as_matrix(),var)
 
