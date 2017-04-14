@@ -125,6 +125,30 @@ def fun(p):
     cost = costMatrix(p)
     return (np.sum(cost,axis=0))[0,0]/cost.shape[0]
 
+
+p=np.array([-7.06453423 ,-0.44768188  ,0.19550523 ,-0.40279784 ,-0.02602051  ,0.25124472,
+  0.38361667, -1.64564863 ,-0.30294213 , 0.07838408 , 0.02767179 , 1.28916747,
+  0.46313221,  1.05722549 , 0.22053143,  0.23369542 , 0.20174279 , 1.51846885,
+  0.18636913, -0.64736853, -0.05645325 , 0.05044996 , 0.87177072,  7.92897264,
+ -3.82256583,  0.6743756  , 3.88470644 , 0.94427169 ,-0.05686988 ,-0.29754628,
+  0.10287585, -0.29683828 ,-0.03877167 , 2.15075129 , 0.52831058 ,-2.96652503,
+ -0.22941295 , 0.92337195 , 1.72542233 , 1.09565885 , 2.10501794 , 1.49306637,
+  1.59396277  ,0.66082587,  1.54074395 , 1.32979109 , 1.86296696 , 1.95980294,
+  1.33316042 ,-8.26323114 ,-9.07219985 ,-1.50869016])
+bad=pd.read_csv('output\\bad2.csv')
+bad['match']=bad['listing_id']
+bad=bad.set_index(['match'])
+rawData['match']=rawData['listing_id']
+rawData=rawData.set_index(['match'])
+bad.index=bad.index.map(str)
+rawData.index=rawData.index.map(str)
+#rawData[var].to_csv('output\\13826.csv')
+
+tar=rawData.drop(bad.index.values)
+
+data = tar[var].as_matrix()
+target=tar[['high', 'medium', 'low']].as_matrix()
+print (fun(p))
 # rn=np.log(np.transpose(np.matrix([rawData['high'].mean(),rawData['medium'].mean(),rawData['low'].mean()])))
 # print -np.sum(np.dot(rawData[['high','medium','low']].as_matrix(),rn))/rawData.shape[0]
 #f=fun(np.random.rand(len(var)*2))
@@ -151,19 +175,36 @@ pinitialize[0]=-6.9
 pinitialize[0+len(var)]=-6.9
 data = rawData[var].as_matrix()
 target=rawData[['high', 'medium', 'low']].as_matrix()
-for i in range(1,20):
+excluded=None
+for i in range(1,80):
 
     res = minimize(fun, pinitialize, method='SLSQP',  constraints=cons)
     r = costMatrix(res.x)
-    if np.sum(r)<>np.nan:
+    if not np.isnan(r).any():
         temp = np.hstack((r,data,target))
-        temp=temp[temp[:,0].argsort()]
-        temp=np.squeeze(temp,1)
+        temp=temp[temp[:,0].argsort(axis=0)]
+        temp=np.squeeze(temp,axis=(1))
         data=temp[0:int(temp.shape[0]-0.01*temp.shape[0]),1:temp.shape[1]-3]
         target=temp[0:int(temp.shape[0]-0.01*temp.shape[0]),temp.shape[1]-3:temp.shape[1]]
+        if excluded==None:excluded = temp[int(temp.shape[0] - 0.01 * temp.shape[0]):, 0:temp.shape[1] ]
+        else  :excluded=np.vstack((excluded,temp[int(temp.shape[0] - 0.01 * temp.shape[0]):, 0:temp.shape[1] ]))
+        final=res.x
+        pinitialize=res.x
+
+
+    else:
+        pinitialize = np.random.rand(len(var) * 2)
+        pinitialize[0] = -6.9
+        pinitialize[0 + len(var)] = -6.9
+
     print data.shape[0],res.fun,i
-
-
+bad=pd.DataFrame(excluded,columns=['cost']+var+['high','medium','low'])
+bad.to_csv('output\\bad.csv', sep=',')
+timeTaken = time.time() - start_time
+print final
+print (fun(final))
+print "time taken is"
+print timeTaken
 #print (sigmoid(np.dot(data,np.matrix((res.x).reshape(len(var),2)))))
 #
 # r=costMatrix(res.x)
